@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Import Complete{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-green-50 border-2 border-green-500 rounded-lg p-6 mb-6">
+        <h1 class="text-2xl font-bold text-green-800 mb-2">✅ Import Complete!</h1>
+        <p class="text-green-700">Your campaign has been created successfully</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-bold mb-4">Import Summary</h2>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <div class="text-sm text-gray-600">Total Rows</div>
+                <div class="text-2xl font-bold">{{ stats.total_rows }}</div>
+            </div>
+            <div>
+                <div class="text-sm text-gray-600">Valid Businesses</div>
+                <div class="text-2xl font-bold text-green-600">{{ stats.valid_count }}</div>
+            </div>
+            <div>
+                <div class="text-sm text-gray-600">Opportunities Found</div>
+                <div class="text-2xl font-bold text-blue-600">{{ opportunities_count }}</div>
+            </div>
+            <div>
+                <div class="text-sm text-gray-600">Skipped</div>
+                <div class="text-2xl font-bold text-orange-600">{{ stats.skipped_count }}</div>
+            </div>
+        </div>
+
+        {% if stats.skip_reasons %}
+        <div class="border-t pt-4">
+            <h3 class="font-bold mb-2">Skip Reasons:</h3>
+            <ul class="space-y-1">
+                {% for reason, count in stats.skip_reasons.items() %}
+                <li class="text-sm">• {{ reason }}: {{ count }} businesses</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if skipped_businesses %}
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h3 class="font-bold mb-2">Skipped Businesses (showing first 10):</h3>
+        <div class="space-y-2">
+            {% for business in skipped_businesses[:10] %}
+            <div class="text-sm border-l-4 border-orange-500 pl-4 py-1">
+                Row {{ business.row_number }}: {{ business.name }} - {{ business.reason }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('campaign.campaign_detail', campaign_id=campaign_id) }}" 
+       class="block bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-center hover:bg-blue-700">
+        View Campaign Dashboard →
+    </a>
+</div>
+{% endblock %}

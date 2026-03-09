@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}{{ campaign.name }}{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">{{ campaign.name }}</h1>
+
+<div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-lg shadow">
+        <div class="text-2xl font-bold">{{ campaign.stats.get('opportunities_found', 0) }}</div>
+        <div class="text-sm text-gray-600">Opportunities</div>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+        <div class="text-2xl font-bold text-green-600">{{ campaign.batch_config.get('total_generated', 0) }}</div>
+        <div class="text-sm text-gray-600">Pitches Ready</div>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+        <div class="text-2xl font-bold text-blue-600">{{ campaign.stats.get('contacted', 0) }}</div>
+        <div class="text-sm text-gray-600">Contacted</div>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow">
+        <div class="text-2xl font-bold text-purple-600">{{ campaign.stats.get('replied', 0) }}</div>
+        <div class="text-sm text-gray-600">Replied</div>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow mb-6">
+    <h2 class="text-xl font-bold mb-4">Generate Pitches</h2>
+    
+    <div class="mb-4">
+        <label class="block text-sm font-bold mb-2">Batch Size</label>
+        <select id="batch-size" class="px-4 py-2 border rounded-lg">
+            <option value="5">5 businesses</option>
+            <option value="10" selected>10 businesses</option>
+            <option value="25">25 businesses</option>
+            <option value="50">50 businesses</option>
+        </select>
+    </div>
+
+    <button onclick="generateBatch()" id="generate-btn" 
+            class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700">
+        Generate Next <span id="batch-display">10</span> Pitches
+    </button>
+
+    <div id="progress-container" class="hidden mt-4">
+        <div class="mb-2">
+            <div class="flex justify-between text-sm">
+                <span id="progress-text">Generating...</span>
+                <span id="progress-count">0/0</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+            </div>
+        </div>
+        <div id="log" class="max-h-48 overflow-y-auto text-sm space-y-1"></div>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow">
+    <h2 class="text-xl font-bold mb-4">Businesses ({{ businesses|length }})</h2>
+    
+    <div class="space-y-4">
+        {% for business in businesses %}
+        <div class="border p-4 rounded-lg">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <h3 class="font-bold text-lg">{{ business.name }}</h3>
+                    <p class="text-sm text-gray-600">{{ business.category }}</p>
+                </div>
+                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">
+                    {{ business.opportunity_score }}
+                </span>
+            </div>
+            
+            {% if business.ai_pitch %}
+            <div class="bg-gray-50 p-3 rounded mb-2">
+                <p class="text-sm">{{ business.ai_pitch[:150] }}...</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{{ url_for('business.business_detail', business_id=business.id) }}" 
+                   class="flex-1 bg-blue-600 text-white px-4 py-2 rounded text-center hover:bg-blue-700">
+                    View Full
+                </a>
+                {% if business.phone_normalized %}
+                <button onclick="openWhatsApp('{{ business.phone_normalized }}', '{{ business.ai_pitch }}', {{ business.id }})"
+                        class="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    WhatsApp
+                </button>
+                {% endif %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 text-sm">Pitch not generated yet</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const campaignId = {{ campaign.id }};
+
+document.getElementById('batch-size').addEventListener('change', function() {
+    document.getElementById('batch-display').textContent = this.value;
+});
+
+function generateBatch() {
+    const batchSize = document.getElementById('batch-size').value;
+    const button = document.getElementById('generate-btn');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const progressCount = document.getElementById('progress-count');
+    const log = document.getElementById('log');
+    
+    button.disabled = true;
+    button.textContent = 'Generating...';
+    progressContainer.classList.remove('hidden');
+    log.innerHTML = '';
+    
+    const eventSource = new EventSource(`/api/campaigns/${campaignId}/generate-batch?size=${batchSize}`);
+    
+    eventSource.addEventListener('message', function(event) {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'started') {
+            progressText.textContent = data.message;
+            progressCount.textContent = `0/${data.total}`;
+        }
+        else if (data.type === 'progress') {
+            const percent = (data.current / data.total) * 100;
+            progressBar.style.width = percent + '%';
+            progressCount.textContent = `${data.current}/${data.total}`;
+            
+            const entry = document.createElement('div');
+            entry.className = data.status === 'success' ? 'text-green-600' : 'text-red-600';
+            entry.textContent = `${data.status === 'success' ? '✓' : '✗'} ${data.business_name}`;
+            log.appendChild(entry);
+        }
+        else if (data.type === 'complete') {
+            eventSource.close();
+            progressText.textContent = data.message;
+            showToast('✅ Batch generation complete!', 'success');
+            setTimeout(() => location.reload(), 2000);
+        }
+    });
+    
+    eventSource.addEventListener('error', function() {
+        eventSource.close();
+        button.disabled = false;
+        button.textContent = `Generate Next ${batchSize} Pitches`;
+        showToast('❌ Generation failed', 'error');
+    });
+}
+
+function openWhatsApp(phone, pitch, businessId) {
+    const url = `https://wa.me/${phone.replace(/\+/g, '')}?text=${encodeURIComponent(pitch)}`;
+    window.open(url, '_blank');
+    
+    // Mark as contacted
+    fetch(`/api/business/${businessId}/status`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status: 'sent'})
+    });
+}
+</script>
+{% endblock %}

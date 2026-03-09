@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}{{ business.name }}{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('campaign.campaign_detail', campaign_id=campaign.id) }}" class="text-blue-600 hover:underline mb-4 inline-block">
+    ← Back to Campaign
+</a>
+
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h1 class="text-2xl font-bold mb-2">{{ business.name }}</h1>
+        <p class="text-gray-600 mb-4">{{ business.category }}</p>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <div class="text-sm text-gray-600">Opportunity Score</div>
+                <div class="text-3xl font-bold text-green-600">{{ business.opportunity_score }}/100</div>
+            </div>
+            <div>
+                <div class="text-sm text-gray-600">Rating</div>
+                <div class="text-2xl font-bold">{{ business.rating or 'N/A' }}★ ({{ business.review_count or 0 }})</div>
+            </div>
+        </div>
+
+        <div class="border-t pt-4">
+            <h3 class="font-bold mb-2">Discovery Analysis</h3>
+            <p class="text-sm text-gray-700">{{ business.discovery_analysis }}</p>
+        </div>
+
+        {% if business.phone_normalized %}
+        <div class="border-t pt-4 mt-4">
+            <h3 class="font-bold mb-2">Contact</h3>
+            <p class="text-sm">{{ business.phone_normalized }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if business.ai_pitch %}
+    <div class="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 class="text-xl font-bold mb-4">AI Generated Pitch</h2>
+        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+            <p id="pitch-text" class="text-sm leading-relaxed">{{ business.ai_pitch_edited or business.ai_pitch }}</p>
+        </div>
+        
+        <div class="flex gap-2 mb-4">
+            <button onclick="copyPitch()" class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300">
+                Copy
+            </button>
+            <button onclick="editPitch()" id="edit-btn" class="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300">
+                Edit
+            </button>
+        </div>
+
+        {% if whatsapp_link %}
+        <button onclick="sendWhatsApp()" class="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700">
+            Send via WhatsApp
+        </button>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="bg-white p-6 rounded-lg shadow">
+        <label class="block text-sm font-bold mb-2">Status</label>
+        <select id="status-select" onchange="updateStatus()" class="w-full px-4 py-2 border rounded-lg">
+            <option value="not_generated" {% if business.outreach_status.value == 'not_generated' %}selected{% endif %}>Not Generated</option>
+            <option value="pitch_ready" {% if business.outreach_status.value == 'pitch_ready' %}selected{% endif %}>Pitch Ready</option>
+            <option value="sent" {% if business.outreach_status.value == 'sent' %}selected{% endif %}>Contacted</option>
+            <option value="replied" {% if business.outreach_status.value == 'replied' %}selected{% endif %}>Replied</option>
+            <option value="not_interested" {% if business.outreach_status.value == 'not_interested' %}selected{% endif %}>Not Interested</option>
+            <option value="converted" {% if business.outreach_status.value == 'converted' %}selected{% endif %}>Converted</option>
+        </select>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const businessId = {{ business.id }};
+let isEditing = false;
+
+function copyPitch() {
+    const pitch = document.getElementById('pitch-text').textContent;
+    navigator.clipboard.writeText(pitch);
+    showToast('✅ Copied to clipboard', 'success');
+}
+
+function editPitch() {
+    const pitchEl = document.getElementById('pitch-text');
+    const editBtn = document.getElementById('edit-btn');
+    
+    if (!isEditing) {
+        pitchEl.contentEditable = true;
+        pitchEl.classList.add('border-2', 'border-blue-600', 'p-2');
+        editBtn.textContent = 'Save';
+        isEditing = true;
+    } else {
+        pitchEl.contentEditable = false;
+        pitchEl.classList.remove('border-2', 'border-blue-600', 'p-2');
+        editBtn.textContent = 'Edit';
+        isEditing = false;
+        
+        const editedPitch = pitchEl.textContent.trim();
+        fetch(`/api/business/${businessId}/pitch`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({pitch: editedPitch})
+        }).then(() => showToast('✅ Pitch updated', 'success'));
+    }
+}
+
+function updateStatus() {
+    const status = document.getElementById('status-select').value;
+    fetch(`/api/business/${businessId}/status`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status: status})
+    }).then(() => showToast('✅ Status updated', 'success'));
+}
+
+function sendWhatsApp() {
+    const pitch = document.getElementById('pitch-text').textContent;
+    window.open('{{ whatsapp_link|safe }}'.replace(encodeURIComponent('{{ business.ai_pitch }}'), encodeURIComponent(pitch)), '_blank');
+    document.getElementById('status-select').value = 'sent';
+    updateStatus();
+}
+</script>
+{% endblock %}

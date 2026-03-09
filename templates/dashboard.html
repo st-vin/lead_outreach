@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Your Campaigns</h1>
+
+{% if campaigns %}
+    <div class="grid gap-4">
+        {% for campaign in campaigns %}
+        <a href="{{ url_for('campaign.campaign_detail', campaign_id=campaign.id) }}" class="block bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
+            <h2 class="text-xl font-bold mb-2">{{ campaign.name }}</h2>
+            <p class="text-gray-600 mb-4">{{ campaign.location }}</p>
+            
+            <div class="grid grid-cols-4 gap-4 text-center">
+                <div>
+                    <div class="text-2xl font-bold">{{ campaign.stats.get('opportunities_found', 0) }}</div>
+                    <div class="text-sm text-gray-600">Opportunities</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-green-600">{{ campaign.batch_config.get('total_generated', 0) }}</div>
+                    <div class="text-sm text-gray-600">Pitches</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-blue-600">{{ campaign.stats.get('contacted', 0) }}</div>
+                    <div class="text-sm text-gray-600">Contacted</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-purple-600">{{ campaign.stats.get('replied', 0) }}</div>
+                    <div class="text-sm text-gray-600">Replied</div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-12 bg-white rounded-lg">
+        <p class="text-gray-600 mb-4">No campaigns yet</p>
+        <a href="{{ url_for('upload.upload_step1') }}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700">
+            Create Your First Campaign
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

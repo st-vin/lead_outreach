@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Lead Outreach Tool - Home{% endblock %}
+
+{% block content %}
+<div class="text-center py-12">
+    <h1 class="text-4xl font-bold text-gray-900 mb-4">Find Freelance Clients on Autopilot</h1>
+    <p class="text-xl text-gray-600 mb-8">AI-powered lead generation and personalized outreach for freelancers</p>
+    
+    <div class="space-y-4 max-w-md mx-auto">
+        <a href="{{ url_for('upload.upload_step1') }}" class="block bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700">
+            Upload Your First Campaign
+        </a>
+        <a href="{{ url_for('main.dashboard') }}" class="block bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-200">
+            View Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

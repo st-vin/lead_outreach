@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Preview & Confirm{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Step 2: Preview Column Mapping</h1>
+
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow">
+    <h2 class="text-xl font-bold mb-4">Detected Columns ({{ total_rows }} rows)</h2>
+    
+    <div class="space-y-4 mb-6">
+        {% for field, mapping in detected_mappings.items() %}
+        <div class="border p-4 rounded-lg">
+            <div class="flex justify-between items-center mb-2">
+                <span class="font-bold">{{ field.replace('_', ' ').title() }}</span>
+                <span class="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                    {{ (mapping.confidence * 100)|int }}% Confidence
+                </span>
+            </div>
+            <div class="text-sm text-gray-600">
+                CSV Column: <code class="bg-gray-100 px-2 py-1 rounded">{{ mapping.csv_column }}</code>
+            </div>
+            <div class="text-sm text-gray-600 mt-2">
+                Sample: {{ mapping.sample_values|join(', ') }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h3 class="font-bold mb-2">Preview (First 5 rows):</h3>
+    <div class="overflow-x-auto mb-6">
+        <table class="min-w-full border">
+            <thead>
+                <tr class="bg-gray-50">
+                    {% for field in detected_mappings.keys() %}
+                    <th class="px-4 py-2 border">{{ field.replace('_', ' ').title() }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in preview_data %}
+                <tr>
+                    {% for field in detected_mappings.keys() %}
+                    <td class="px-4 py-2 border">{{ row.get(field, '') }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <form action="{{ url_for('upload.upload_confirm') }}" method="POST">
+        <div class="flex gap-4">
+            <a href="{{ url_for('upload.upload_step1') }}" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg font-bold text-center hover:bg-gray-300">
+                ← Back
+            </a>
+            <button type="submit" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700">
+                Looks Good, Import! →
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
