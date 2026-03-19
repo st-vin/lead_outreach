@@ -52,7 +52,7 @@
             </button>
         </div>
 
-        {% if whatsapp_link %}
+        {% if business.phone_normalized %}
         <button onclick="sendWhatsApp()" class="w-full bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700">
             Send via WhatsApp
         </button>
@@ -120,7 +120,10 @@ function updateStatus() {
 
 function sendWhatsApp() {
     const pitch = document.getElementById('pitch-text').textContent;
-    window.open('{{ whatsapp_link|safe }}'.replace(encodeURIComponent('{{ business.ai_pitch }}'), encodeURIComponent(pitch)), '_blank');
+    const phone = {{ business.phone_normalized|tojson }};
+    const cleanPhone = (phone || '').replace(/\+/g, '').replace(/\s+/g, '');
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(pitch)}`;
+    window.open(url, '_blank');
     document.getElementById('status-select').value = 'sent';
     updateStatus();
 }

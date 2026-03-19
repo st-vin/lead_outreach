@@ -1,0 +1,22 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="mb-4 space-y-3">
+            {% for category, message in messages %}
+                {% set is_success = category == 'success' %}
+                <div class="flex items-start gap-3 px-4 py-3 rounded-2xl border text-sm shadow-card
+                            {% if is_success %}
+                                bg-green-50 border-green-200 text-green-900
+                            {% else %}
+                                bg-error-container border-error text-on-error-container
+                            {% endif %}">
+                    <span class="material-symbols-outlined text-base mt-0.5
+                                 {% if is_success %}text-green-600{% else %}text-error{% endif %}">
+                        {% if is_success %}check_circle{% else %}error{% endif %}
+                    </span>
+                    <p class="font-medium">{{ message }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+

@@ -3,54 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Lead Outreach Tool{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .spinner { border: 2px solid #f3f3f3; border-top: 2px solid #3498db; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
-    {% block extra_head %}{% endblock %}
-</head>
-<body class="bg-gray-50">
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <a href="{{ url_for('main.index') }}" class="text-xl font-bold text-blue-600">Lead Outreach Tool</a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="{{ url_for('main.dashboard') }}" class="text-gray-700 hover:text-blue-600">Dashboard</a>
-                    <a href="{{ url_for('upload.upload_step1') }}" class="text-gray-700 hover:text-blue-600">Upload</a>
-                    <a href="{{ url_for('settings.settings') }}" class="text-gray-700 hover:text-blue-600">Settings</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <title>{% block title %}Precision Architect | Lead Outreach{% endblock %}</title>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                <div class="mb-4 p-4 rounded-lg {% if category == 'success' %}bg-green-50 text-green-800{% else %}bg-red-50 text-red-800{% endif %}">
-                    {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        {% block content %}{% endblock %}
-    </main>
+    <!-- Tailwind + plugins -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
-    <script>
-        function showToast(message, type = 'success') {
-            const div = document.createElement('div');
-            div.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`;
-            div.textContent = message;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 3000);
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+    <!-- Tailwind config (light mode only, but tokenized like reference) -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "error-container": "#ffdad6",
+                        "on-tertiary-container": "#ffd2be",
+                        "on-surface-variant": "#464555",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#4F46E5",
+                        "inverse-primary": "#c3c0ff",
+                        "tertiary": "#7e3000",
+                        "on-secondary-fixed": "#140f54",
+                        "on-secondary-container": "#454386",
+                        "tertiary-fixed": "#ffdbcc",
+                        "on-tertiary-fixed-variant": "#7b2f00",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#ffb695",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#edeeef",
+                        "tertiary-container": "#a44100",
+                        "primary-container": "#4338ca",
+                        "on-primary-fixed": "#0f0069",
+                        "surface-variant": "#e1e3e4",
+                        "secondary-container": "#b6b4ff",
+                        "secondary-fixed-dim": "#c3c0ff",
+                        "secondary": "#58579b",
+                        "on-tertiary-fixed": "#351000",
+                        "background": "#f8f9fa",
+                        "surface-bright": "#f8f9fa",
+                        "on-tertiary": "#ffffff",
+                        "surface-tint": "#4d44e3",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-error": "#ffffff",
+                        "outline-variant": "#c7c4d8",
+                        "surface-dim": "#d9dadb",
+                        "outline": "#777587",
+                        "on-secondary-fixed-variant": "#413f82",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f3f4f5",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "primary-fixed": "#e2dfff",
+                        "on-surface": "#191c1d",
+                        "on-primary-container": "#dad7ff",
+                        "surface": "#f8f9fa",
+                        "on-background": "#191c1d",
+                        "surface-container-high": "#e7e8e9",
+                        "secondary-fixed": "#e2dfff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "inverse-surface": "#2e3132"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        "card": "0 12px 32px rgba(25,28,29,0.06)"
+                    }
+                },
+            },
         }
     </script>
-    
+
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+
+        /* Sidebar collapsed layout tweaks */
+        @media (min-width: 768px) {
+            body.sidebar-collapsed #app-sidebar {
+                transform: translateX(-100%);
+            }
+            body.sidebar-collapsed #content-shell {
+                margin-left: 0;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            #content-shell {
+                margin-left: 16rem; /* 64 * 0.25rem */
+            }
+            body.sidebar-collapsed #content-shell {
+                margin-left: 0;
+            }
+        }
+        .spinner {
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #4F46E5;
+            border-radius: 9999px;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-surface text-on-surface font-body antialiased selection:bg-primary-fixed-dim">
+    <div class="min-h-screen bg-surface text-on-surface flex" id="app-root">
+        {# Sidebar (collapsible) #}
+        {% include 'partials/sidebar.html' %}
+
+        <div class="flex-1 flex flex-col min-h-screen transition-[margin] duration-200 ease-out" id="content-shell">
+            {# Mobile / top app bar #}
+            {% include 'partials/topbar.html' %}
+
+            <main class="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">
+                {% include 'partials/flash_messages.html' %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Simple sidebar collapse/expand
+        (function () {
+            const body = document.body;
+            const SIDEBAR_COLLAPSED_CLASS = 'sidebar-collapsed';
+
+            function setCollapsed(collapsed) {
+                if (collapsed) {
+                    body.classList.add(SIDEBAR_COLLAPSED_CLASS);
+                } else {
+                    body.classList.remove(SIDEBAR_COLLAPSED_CLASS);
+                }
+            }
+
+            window.toggleSidebar = function () {
+                const isCollapsed = body.classList.contains(SIDEBAR_COLLAPSED_CLASS);
+                setCollapsed(!isCollapsed);
+            };
+        })();
+
+        function showToast(message, type = 'success') {
+            const existing = document.getElementById('toast-root');
+            if (existing) existing.remove();
+
+            const div = document.createElement('div');
+            div.id = 'toast-root';
+            const base =
+                'fixed top-4 right-4 z-50 inline-flex items-center gap-3 px-4 py-3 rounded-xl shadow-card text-sm font-medium transition-all';
+            const success =
+                'bg-primary text-white';
+            const error =
+                'bg-error text-on-error';
+
+            div.className = base + ' ' + (type === 'success' ? success : error);
+
+            const icon = document.createElement('span');
+            icon.className = 'material-symbols-outlined text-base';
+            icon.textContent = type === 'success' ? 'check_circle' : 'error';
+
+            const text = document.createElement('span');
+            text.textContent = message;
+
+            div.appendChild(icon);
+            div.appendChild(text);
+
+            document.body.appendChild(div);
+            setTimeout(() => {
+                div.classList.add('opacity-0', 'translate-y-1');
+                setTimeout(() => div.remove(), 200);
+            }, 2600);
+        }
+    </script>
+
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

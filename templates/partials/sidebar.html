@@ -1,0 +1,58 @@
+<aside
+    id="app-sidebar"
+    class="md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface-container-lowest border-r border-outline-variant/30 py-6 px-4 space-y-4 z-40 shadow-card
+           hidden sidebar:translate-x-0 sidebar:opacity-100 sidebar:pointer-events-auto
+           transition-transform duration-200 ease-out"
+>
+    <div class="px-2 mb-6">
+        <h1 class="font-headline font-bold text-lg tracking-tight text-on-surface">
+            Precision Architect
+        </h1>
+        <p class="text-[10px] font-label uppercase tracking-[0.2em] text-outline font-bold">
+            Outreach Engine
+        </p>
+    </div>
+
+    <nav class="flex-1 space-y-1 text-sm font-label">
+        <a href="{{ url_for('main.dashboard') }}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
+                  {% if request.endpoint and request.endpoint.startswith('main.dashboard') %}
+                      bg-primary/10 text-primary font-bold
+                  {% else %}
+                      text-on-surface-variant hover:text-primary hover:bg-surface-container-low
+                  {% endif %}">
+            <span class="material-symbols-outlined text-xl">space_dashboard</span>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="{{ url_for('upload.upload_step1') }}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
+                  {% if request.endpoint and request.endpoint.startswith('upload.') %}
+                      bg-primary/10 text-primary font-bold
+                  {% else %}
+                      text-on-surface-variant hover:text-primary hover:bg-surface-container-low
+                  {% endif %}">
+            <span class="material-symbols-outlined text-xl">upload_file</span>
+            <span>Upload Campaign</span>
+        </a>
+
+        <a href="{{ url_for('settings.settings') }}"
+           class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
+                  {% if request.endpoint and request.endpoint.startswith('settings.') %}
+                      bg-primary/10 text-primary font-bold
+                  {% else %}
+                      text-on-surface-variant hover:text-primary hover:bg-surface-container-low
+                  {% endif %}">
+            <span class="material-symbols-outlined text-xl">settings</span>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <a href="{{ url_for('upload.upload_step1') }}"
+       class="mt-auto bg-primary text-on-primary py-3 rounded-xl font-label text-sm font-bold shadow-card text-center
+              hover:bg-primary-container transition-all flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-base">add</span>
+        <span>New Campaign</span>
+    </a>
+</aside>
+

@@ -4,6 +4,7 @@
 
 {% block content %}
 <h1 class="text-3xl font-bold mb-6">{{ campaign.name }}</h1>
+<div id="campaign-root" data-campaign-id="{{ campaign.id }}" class="hidden"></div>
 
 <div class="grid grid-cols-4 gap-4 mb-6">
     <div class="bg-white p-4 rounded-lg shadow">
@@ -72,9 +73,10 @@
                 </span>
             </div>
             
-            {% if business.ai_pitch %}
+            {% if business.ai_pitch_edited or business.ai_pitch %}
             <div class="bg-gray-50 p-3 rounded mb-2">
-                <p class="text-sm">{{ business.ai_pitch[:150] }}...</p>
+                {% set pitch_text = business.ai_pitch_edited or business.ai_pitch %}
+                <p class="text-sm">{{ pitch_text[:150] }}...</p>
             </div>
             <div class="flex gap-2">
                 <a href="{{ url_for('business.business_detail', business_id=business.id) }}" 
@@ -82,8 +84,11 @@
                     View Full
                 </a>
                 {% if business.phone_normalized %}
-                <button onclick="openWhatsApp('{{ business.phone_normalized }}', '{{ business.ai_pitch }}', {{ business.id }})"
-                        class="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                <button type="button"
+                        class="js-whatsapp flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                        data-phone='{{ business.phone_normalized|tojson }}'
+                        data-pitch='{{ (business.ai_pitch_edited or business.ai_pitch)|tojson }}'
+                        data-business-id="{{ business.id }}">
                     WhatsApp
                 </button>
                 {% endif %}
@@ -99,7 +104,22 @@
 
 {% block extra_scripts %}
 <script>
-const campaignId = {{ campaign.id }};
+const campaignId = Number(document.getElementById('campaign-root')?.dataset?.campaignId);
+
+document.querySelectorAll('.js-whatsapp').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        const phone = JSON.parse(btn.dataset.phone || '""');
+        let pitch = JSON.parse(btn.dataset.pitch || '""');
+        if (typeof pitch !== 'string') pitch = String(pitch ?? '');
+        pitch = pitch.trim();
+        const businessId = Number(btn.dataset.businessId);
+        if (!pitch) {
+            showToast('❌ Missing pitch for this business', 'error');
+            return;
+        }
+        openWhatsApp(phone, pitch, businessId);
+    });
+});
 
 document.getElementById('batch-size').addEventListener('change', function() {
     document.getElementById('batch-display').textContent = this.value;
